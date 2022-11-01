@@ -92,4 +92,18 @@ void quickSort(T* first, T* last, Compare comp) {
     }
 }
 
-
+template<typename T, typename Compare>
+void sort(T* first, T* last, Compare comp, int algoritmChangeSize) {
+    while (last - first > algoritmChangeSize) {
+        T* pivot = partition(first, last, comp);
+        if (pivot - first < last - pivot + 1) {
+            sort(first, pivot, comp, algoritmChangeSize);
+            first = pivot + 1;
+        }
+        else {
+            sort(pivot + 1, last, comp, algoritmChangeSize);
+            last = pivot;
+        }
+    }
+    insertionSort(first, last, comp);
+}
