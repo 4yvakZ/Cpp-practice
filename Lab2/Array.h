@@ -15,14 +15,14 @@ public:
 	};
 
 	Array(int capacity) :
-		size_(0),
-		pitems_((T*)malloc(sizeof(T)* capacity_)) {
+		size_(0){
 		if (capacity < kDefaultArraySize) {
 			capacity_ = kDefaultArraySize;
 		}
 		else {
 			capacity_ = capacity;
 		}
+		pitems_ = (T*)malloc(sizeof(T) * capacity_);
 	}
 	Array() :
 		Array(kDefaultArraySize)
