@@ -1,4 +1,4 @@
-#include "MemAlloc.h"
+#include "MemAllocator.h"
 
 MemoryAllocator::MemoryAllocator() {
 

@@ -127,14 +127,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FSAAllocator.cpp" />
     <ClCompile Include="Lab4.cpp" />
-    <ClCompile Include="MemAlloc.cpp" />
+    <ClCompile Include="MemAllocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MemAlloc.h" />
+    <ClInclude Include="AbstractAllocator.h" />
+    <ClInclude Include="FSAAllocator.h" />
+    <ClInclude Include="MemAllocator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
