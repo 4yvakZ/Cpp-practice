@@ -1,7 +1,6 @@
 #include "FSAAllocator.h"
-#ifdef _DEBUG
-#include <iostream>
-#endif // _DEBUG
+
+constexpr int kFreelistEndIndex = -1;
 
 FSAAllocator::FSAAllocator() {
 #ifdef _DEBUG
@@ -20,27 +19,32 @@ FSAAllocator::~FSAAllocator() {
 }
 
 void FSAAllocator::init(size_t blockSize,size_t numBlocksInPage) {
+
 #ifdef _DEBUG
     isInitialized = true;
     assert(!isDestroyed && "FSA is not destroyed before init");
     isDestroyed = false;
 #endif // _DEBUG
+
     this->blockSize = blockSize;
     this->numBlocksInPage = numBlocksInPage;
     allocPage(page);
 }
 
 void FSAAllocator::destroy() {
+
 #ifdef _DEBUG
     assert(isInitialized && "FSA is not initialized before destroy");
     isDestroyed = true;
     isInitialized = false;
 #endif // _DEBUG
+
     destroyPage(page);
     page = nullptr;
 }
 
 void* FSAAllocator::alloc(size_t size) {
+
 #ifdef _DEBUG
     assert(isInitialized && "FSA is not initialized before alloc");
     numAlloc++;
@@ -65,10 +69,12 @@ void* FSAAllocator::alloc(size_t size) {
 }
 
 bool FSAAllocator::free(void* p) {
+
 #ifdef _DEBUG
     assert(isInitialized && "FSA is not initialized before free");
     numFree++;
 #endif // _DEBUG
+
     Page* currentPage = page;
     while (currentPage != nullptr) {
         if (currentPage->blocks < p && (char*)currentPage->blocks + numBlocksInPage * blockSize > p) {

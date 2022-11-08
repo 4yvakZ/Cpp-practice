@@ -1,8 +1,9 @@
 #pragma once
 #include <cassert>
 #include <windows.h>
-
-constexpr int kFreelistEndIndex = -1;
+#ifdef _DEBUG
+#include <iostream>
+#endif // _DEBUG
 
 class FSAAllocator {
 public:

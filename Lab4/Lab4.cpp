@@ -12,7 +12,7 @@ int main()
     int* pd = (int*)allocator.alloc(sizeof(int));
     int* pf = (int*)allocator.alloc(sizeof(int)*1000);
 
-    allocator.free(pf);
+    //allocator.free(pf);
     allocator.dumpStat();
     allocator.dumpBlocks();
     allocator.destroy();

@@ -29,6 +29,7 @@ void MemoryAllocator::init() {
 	fsa128.init(128, 64);
 	fsa256.init(256, 32);
 	fsa512.init(512, 16);
+	coalesceAllocator.init(10485760); // 10MB
 }
 void MemoryAllocator::destroy() {
 #ifdef _DEBUG
@@ -43,12 +44,15 @@ void MemoryAllocator::destroy() {
 	fsa256.destroy();
 	fsa512.destroy();
 
+	coalesceAllocator.destroy();
+
 	for (size_t i = 0; i < OSBlocks.size(); i++) {
 		VirtualFree(OSBlocks[i].data, 0, MEM_RELEASE);
 	}
 }
 
 void* MemoryAllocator::alloc(size_t size) {
+
 #ifdef _DEBUG
 	assert(isInitialized && "MemoryAllocator is not initialized before alloc");
 	numAlloc++;
@@ -72,7 +76,9 @@ void* MemoryAllocator::alloc(size_t size) {
 	if (size < 512) {
 		return fsa512.alloc(size);
 	}
-
+	if (size < 10485760) { // 10MB
+		//return coalesceAllocator.alloc(size);
+	}
 	void* p = VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 	Block block;
 	block.data = p;
@@ -82,10 +88,12 @@ void* MemoryAllocator::alloc(size_t size) {
 	return p;
 }
 void MemoryAllocator::free(void* p) {
+
 #ifdef _DEBUG
 	assert(isInitialized && "MemoryAllocator is not initialized before free");
 	numFree++;
 #endif // _DEBUG
+
 	if (fsa16.free(p)) {
 		return;
 	}
@@ -105,6 +113,10 @@ void MemoryAllocator::free(void* p) {
 		return;
 	}
 
+	if (coalesceAllocator.free(p)) {
+		return;
+	}
+
 	bool res = VirtualFree(p, 0, MEM_RELEASE);
 	assert(res && "Poiner out of bounds");
 	if (res) {
@@ -119,6 +131,8 @@ void MemoryAllocator::free(void* p) {
 
 #ifdef _DEBUG
 void MemoryAllocator::dumpStat() const {
+	assert(isInitialized && "MemoryAllocator is not initialized before dumpStat");
+
 	std::cout << "Memory Allocator:" << std::endl;
 	std::cout << "\tAllocs: " << numAlloc << " Frees: " << numFree << std::endl;
 
@@ -129,6 +143,8 @@ void MemoryAllocator::dumpStat() const {
 	fsa256.dumpStat();
 	fsa512.dumpStat();
 
+
+
 	std::cout << "\tPure OS Blocks:" << std::endl;
 	for (size_t i = 0; i < OSBlocks.size(); i++) {
 		std::cout << "\t\tBlock " << i << " Adress: " << OSBlocks[i].data << " Size: " << OSBlocks[i].size << std::endl;
@@ -138,6 +154,8 @@ void MemoryAllocator::dumpStat() const {
 	std::cout << std::endl;
 }
 void MemoryAllocator::dumpBlocks() const {
+	assert(isInitialized && "MemoryAllocator is not initialized before dumpBlocks");
+
 	std::cout << "Memory Allocator:" << std::endl;
 	fsa16.dumpBlocks();
 	fsa32.dumpBlocks();
