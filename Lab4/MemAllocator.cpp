@@ -43,7 +43,9 @@ void MemoryAllocator::destroy() {
 	fsa256.destroy();
 	fsa512.destroy();
 
-
+	for (size_t i = 0; i < OSBlocks.size(); i++) {
+		VirtualFree(OSBlocks[i].data, 0, MEM_RELEASE);
+	}
 }
 
 void* MemoryAllocator::alloc(size_t size) {
