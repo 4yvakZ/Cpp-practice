@@ -4,13 +4,15 @@
 
 int main()
 {
-    FSAAllocator allocator(64);
+    MemoryAllocator allocator;
     allocator.init();
     int* pa = (int*)allocator.alloc(sizeof(int));
     int* pb = (int*)allocator.alloc(sizeof(int));
     int* pc = (int*)allocator.alloc(sizeof(int));
     int* pd = (int*)allocator.alloc(sizeof(int));
-    allocator.free(pb);
+    int* pf = (int*)allocator.alloc(sizeof(int)*1000);
+
+    allocator.free(pf);
     allocator.dumpStat();
     allocator.dumpBlocks();
     allocator.destroy();

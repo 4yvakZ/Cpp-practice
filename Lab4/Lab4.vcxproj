@@ -135,7 +135,6 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AbstractAllocator.h" />
     <ClInclude Include="FSAAllocator.h" />
     <ClInclude Include="MemAllocator.h" />
   </ItemGroup>

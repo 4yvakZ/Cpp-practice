@@ -1,36 +1,38 @@
 #include "FSAAllocator.h"
 #ifdef _DEBUG
 #include <iostream>
-#endif 
+#endif // _DEBUG
 
-FSAAllocator::FSAAllocator(size_t blockSize):
-    blockSize(blockSize)
-{
-
-}
-
-FSAAllocator::~FSAAllocator()
-{
+FSAAllocator::FSAAllocator() {
 #ifdef _DEBUG
-    assert(isDestroyed);
+    isInitialized = false;
+    isDestroyed = false;
+
+    numAlloc = 0;
+    numFree = 0;
 #endif // _DEBUG
 }
 
-void FSAAllocator::init()
-{
+FSAAllocator::~FSAAllocator() {
+#ifdef _DEBUG
+    assert(isDestroyed && "FSA is not destroyed before delete");
+#endif // _DEBUG
+}
+
+void FSAAllocator::init(size_t blockSize,size_t numBlocksInPage) {
 #ifdef _DEBUG
     isInitialized = true;
-    assert(!isDestroyed);
+    assert(!isDestroyed && "FSA is not destroyed before init");
     isDestroyed = false;
 #endif // _DEBUG
-    
+    this->blockSize = blockSize;
+    this->numBlocksInPage = numBlocksInPage;
     allocPage(page);
 }
 
-void FSAAllocator::destroy()
-{
+void FSAAllocator::destroy() {
 #ifdef _DEBUG
-    assert(isInitialized);
+    assert(isInitialized && "FSA is not initialized before destroy");
     isDestroyed = true;
     isInitialized = false;
 #endif // _DEBUG
@@ -38,17 +40,16 @@ void FSAAllocator::destroy()
     page = nullptr;
 }
 
-void* FSAAllocator::alloc(size_t size)
-{
+void* FSAAllocator::alloc(size_t size) {
 #ifdef _DEBUG
-    assert(isInitialized);
+    assert(isInitialized && "FSA is not initialized before alloc");
     numAlloc++;
 #endif // _DEBUG
 
     Page* currentPage = page;
 
     while (currentPage->FH == kFreelistEndIndex) {
-        if (currentPage->numInitialized < kNumBlocksInPage) {
+        if (currentPage->numInitialized < numBlocksInPage) {
             currentPage->numInitialized++;
             void* p = static_cast<char*>(currentPage->blocks) + (currentPage->numInitialized - 1) * blockSize;
             return p;
@@ -63,32 +64,29 @@ void* FSAAllocator::alloc(size_t size)
     return p;
 }
 
-void FSAAllocator::free(void* p)
-{
+bool FSAAllocator::free(void* p) {
 #ifdef _DEBUG
-    assert(isInitialized);
+    assert(isInitialized && "FSA is not initialized before free");
     numFree++;
 #endif // _DEBUG
-    //TODO find page
     Page* currentPage = page;
     while (currentPage != nullptr) {
-        if (currentPage->blocks < p && (char*)currentPage->blocks + kNumBlocksInPage * blockSize > p) {
+        if (currentPage->blocks < p && (char*)currentPage->blocks + numBlocksInPage * blockSize > p) {
             *static_cast<size_t*>(p) = currentPage->FH;
             currentPage->FH = static_cast<size_t>((static_cast<char*>(p) - static_cast<char*>(currentPage->blocks))/blockSize);
-            return;
+            return true;
         }
         currentPage = currentPage->next;
     }
-    assert(false && "Pointer out of bounds");
+    return false;
 }
 
 #ifdef _DEBUG
-void FSAAllocator::dumpStat() const
-{
-    assert(isInitialized);
-    std::cout << "FSA " << blockSize << ":" << std::endl;
-    std::cout << "Allocs: " << numAlloc << std::endl;
-    std::cout << "Frees: " << numFree << std::endl;
+void FSAAllocator::dumpStat() const {
+    assert(isInitialized && "FSA is not initialized before dumpStat");
+    std::cout << "\tFSA " << blockSize << ":" << std::endl;
+    std::cout << "\t\tAllocs: " << numAlloc << " Frees: " << numFree << std::endl;
+
     Page* currentPage = page;
     size_t numPages = 0;
     size_t numBusyBlocks = 0;
@@ -114,22 +112,22 @@ void FSAAllocator::dumpStat() const
         currentPage = currentPage->next;
         numPages++;
     }
-    std::cout << "Busy Blocks: " << numBusyBlocks << std::endl;
-    std::cout << "Free Blocks: " << numFreeBlocks << std::endl;
-    std::cout << "OS Blocks:" << std::endl;
+
+    std::cout << "\t\tBusy Blocks: " << numBusyBlocks << " Free Blocks: " << numFreeBlocks << std::endl;
+    std::cout << "\t\tOS Blocks:" << std::endl;
+
     currentPage = page;
     size_t pageIndex = 0;
     while (currentPage != nullptr) {
-        std::cout << "Block " << pageIndex << " Adress: " << static_cast<void*>(currentPage) << " Size: " << blockSize * kNumBlocksInPage + sizeof(Page) << std::endl;
+        std::cout << "\t\t\tBlock " << pageIndex << " Adress: " << static_cast<void*>(currentPage) << " Size: " << blockSize * numBlocksInPage + sizeof(Page) << std::endl;
         pageIndex++;
         currentPage = currentPage->next;
     }
 }
 
-void FSAAllocator::dumpBlocks() const
-{
-    assert(isInitialized);
-    std::cout << "FSA " << blockSize << ":" << std::endl;
+void FSAAllocator::dumpBlocks() const {
+    assert(isInitialized && "FSA is not initialized before dumpBlocks");
+    std::cout << "\tFSA " << blockSize << ":" << std::endl;
     Page* currentPage = page;
     size_t pageIndex = 0;
     while (currentPage != nullptr) {
@@ -143,7 +141,7 @@ void FSAAllocator::dumpBlocks() const
                 }
                 index = *static_cast<size_t*>(static_cast<void*>(static_cast<char*>(currentPage->blocks) + index * blockSize));
             }
-            std::cout << "Page " << pageIndex << " Block " << i;
+            std::cout << "\t\tPage " << pageIndex << " Block " << i;
             if (!isFree) {
                 std::cout << " Busy";
             }
@@ -159,9 +157,8 @@ void FSAAllocator::dumpBlocks() const
 }
 #endif // _DEBUG
 
-void FSAAllocator::allocPage(Page*& page)
-{
-    void* pBuf = VirtualAlloc(NULL, blockSize * kNumBlocksInPage + sizeof(Page), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+void FSAAllocator::allocPage(Page*& page) {
+    void* pBuf = VirtualAlloc(NULL, blockSize * numBlocksInPage + sizeof(Page), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
     page = static_cast<Page*>(pBuf);
     page->next = nullptr;
     page->FH = kFreelistEndIndex;
@@ -169,11 +166,10 @@ void FSAAllocator::allocPage(Page*& page)
     page->numInitialized = 0;
 }
 
-void FSAAllocator::destroyPage(Page*& page)
-{
+void FSAAllocator::destroyPage(Page*& page) {
     if (page == nullptr) {
         return;
     }
     destroyPage(page->next);
-    VirtualFree((void*)page, 0, MEM_RELEASE);
+    VirtualFree(static_cast<void*>(page), 0, MEM_RELEASE);
 }

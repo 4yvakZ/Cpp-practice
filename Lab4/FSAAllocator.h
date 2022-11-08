@@ -1,35 +1,34 @@
 #pragma once
 #include <cassert>
-#include "AbstractAllocator.h"
+#include <windows.h>
 
-constexpr size_t kNumBlocksInPage = 2;
 constexpr int kFreelistEndIndex = -1;
 
-class FSAAllocator : public AbstractAllocator {
+class FSAAllocator {
 public:
-	FSAAllocator(size_t blockSize);
+	FSAAllocator();
 	// Inherited via AbstractAllocator
 	virtual ~FSAAllocator();
 
-	virtual void init() override;
-	virtual void destroy() override;
+	virtual void init(size_t blockSize, size_t numBlocksInPage);
+	virtual void destroy();
 
-	virtual void* alloc(size_t size) override;
-	virtual void free(void* p) override;
+	virtual void* alloc(size_t size);
+	virtual bool free(void* p);
 
 #ifdef _DEBUG
-	virtual void dumpStat() const override;
-	virtual void dumpBlocks() const override;
-#endif
+	virtual void dumpStat() const;
+	virtual void dumpBlocks() const;
+#endif // _DEBUG
 
 private:
 #ifdef _DEBUG
-	bool isInitialized = false;
-	bool isDestroyed = false;
+	bool isInitialized;
+	bool isDestroyed;
 
-	size_t numAlloc = 0;
-	size_t numFree = 0;
-#endif 
+	size_t numAlloc;
+	size_t numFree;
+#endif  // _DEBUG
 
 	struct Page {
 		Page* next;
@@ -38,6 +37,7 @@ private:
 		void* blocks;
 	};
 	size_t blockSize;
+	size_t numBlocksInPage;
 	Page *page;
 
 	void allocPage(Page*& page);

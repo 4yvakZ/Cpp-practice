@@ -32,9 +32,6 @@
     <ClInclude Include="MemAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractAllocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FSAAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
