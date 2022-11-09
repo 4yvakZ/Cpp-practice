@@ -5,11 +5,11 @@
 #include <iostream>
 #endif // _DEBUG
 
-class FSAAllocator {
+class FSAllocator {
 public:
-	FSAAllocator();
+	FSAllocator();
 	// Inherited via AbstractAllocator
-	virtual ~FSAAllocator();
+	virtual ~FSAllocator();
 
 	virtual void init(size_t blockSize, size_t numBlocksInPage);
 	virtual void destroy();

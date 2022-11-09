@@ -21,7 +21,7 @@
     <ClCompile Include="MemAllocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FSAAllocator.cpp">
+    <ClCompile Include="FSAllocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CoalesceAllocator.cpp">
@@ -35,7 +35,7 @@
     <ClInclude Include="MemAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FSAAllocator.h">
+    <ClInclude Include="FSAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CoalesceAllocator.h">

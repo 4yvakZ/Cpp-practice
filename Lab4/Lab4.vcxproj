@@ -128,7 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CoalesceAllocator.cpp" />
-    <ClCompile Include="FSAAllocator.cpp" />
+    <ClCompile Include="FSAllocator.cpp" />
     <ClCompile Include="Lab4.cpp" />
     <ClCompile Include="MemAllocator.cpp" />
   </ItemGroup>
@@ -137,7 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoalesceAllocator.h" />
-    <ClInclude Include="FSAAllocator.h" />
+    <ClInclude Include="FSAllocator.h" />
     <ClInclude Include="MemAllocator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

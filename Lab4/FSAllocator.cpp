@@ -1,8 +1,8 @@
-#include "FSAAllocator.h"
+#include "FSAllocator.h"
 
 constexpr int kFreelistEndIndex = -1;
 
-FSAAllocator::FSAAllocator() {
+FSAllocator::FSAllocator() {
 #ifdef _DEBUG
     isInitialized = false;
     isDestroyed = false;
@@ -12,13 +12,13 @@ FSAAllocator::FSAAllocator() {
 #endif // _DEBUG
 }
 
-FSAAllocator::~FSAAllocator() {
+FSAllocator::~FSAllocator() {
 #ifdef _DEBUG
     assert(isDestroyed && "FSA is not destroyed before delete");
 #endif // _DEBUG
 }
 
-void FSAAllocator::init(size_t blockSize,size_t numBlocksInPage) {
+void FSAllocator::init(size_t blockSize,size_t numBlocksInPage) {
 
 #ifdef _DEBUG
     isInitialized = true;
@@ -31,7 +31,7 @@ void FSAAllocator::init(size_t blockSize,size_t numBlocksInPage) {
     allocPage(page);
 }
 
-void FSAAllocator::destroy() {
+void FSAllocator::destroy() {
 
 #ifdef _DEBUG
     assert(isInitialized && "FSA is not initialized before destroy");
@@ -43,7 +43,7 @@ void FSAAllocator::destroy() {
     page = nullptr;
 }
 
-void* FSAAllocator::alloc(size_t size) {
+void* FSAllocator::alloc(size_t size) {
 
 #ifdef _DEBUG
     assert(isInitialized && "FSA is not initialized before alloc");
@@ -68,7 +68,7 @@ void* FSAAllocator::alloc(size_t size) {
     return p;
 }
 
-bool FSAAllocator::free(void* p) {
+bool FSAllocator::free(void* p) {
 
 #ifdef _DEBUG
     assert(isInitialized && "FSA is not initialized before free");
@@ -77,18 +77,21 @@ bool FSAAllocator::free(void* p) {
 
     Page* currentPage = page;
     while (currentPage != nullptr) {
-        if (currentPage->blocks < p && (char*)currentPage->blocks + numBlocksInPage * blockSize > p) {
+        if (static_cast<void*>(currentPage->blocks) <= p && static_cast<void*>(static_cast<char*>(currentPage->blocks) + numBlocksInPage * blockSize) > p) {
             *static_cast<size_t*>(p) = currentPage->FH;
             currentPage->FH = static_cast<size_t>((static_cast<char*>(p) - static_cast<char*>(currentPage->blocks))/blockSize);
             return true;
         }
         currentPage = currentPage->next;
     }
+#ifdef _DEBUG
+    numFree--;
+#endif // _DEBUG
     return false;
 }
 
 #ifdef _DEBUG
-void FSAAllocator::dumpStat() const {
+void FSAllocator::dumpStat() const {
     assert(isInitialized && "FSA is not initialized before dumpStat");
     std::cout << "\tFSA " << blockSize << ":" << std::endl;
     std::cout << "\t\tAllocs: " << numAlloc << " Frees: " << numFree << std::endl;
@@ -119,24 +122,28 @@ void FSAAllocator::dumpStat() const {
         numPages++;
     }
 
-    std::cout << "\t\tBusy Blocks: " << numBusyBlocks << " Free Blocks: " << numFreeBlocks << std::endl;
-    std::cout << "\t\tOS Blocks:" << std::endl;
+    std::cout << "\t\tPages: " << numPages;
+    std::cout << " Busy Blocks: " << numBusyBlocks << " Free Blocks: " << numFreeBlocks << std::endl;
+    std::cout << "\t\tOS Buffers:" << std::endl;
 
     currentPage = page;
     size_t pageIndex = 0;
     while (currentPage != nullptr) {
-        std::cout << "\t\t\tBlock " << pageIndex << " Adress: " << static_cast<void*>(currentPage) << " Size: " << blockSize * numBlocksInPage + sizeof(Page) << std::endl;
+        std::cout << "\t\t\tBuffer " << pageIndex << " Adress: " << static_cast<void*>(currentPage) 
+            << " Size: " << blockSize * numBlocksInPage + sizeof(Page) << std::endl;
         pageIndex++;
         currentPage = currentPage->next;
     }
 }
 
-void FSAAllocator::dumpBlocks() const {
+void FSAllocator::dumpBlocks() const {
     assert(isInitialized && "FSA is not initialized before dumpBlocks");
     std::cout << "\tFSA " << blockSize << ":" << std::endl;
     Page* currentPage = page;
     size_t pageIndex = 0;
     while (currentPage != nullptr) {
+
+        std::cout << "\t\tPage " << pageIndex << std::endl;
         for (size_t i = 0; i < currentPage->numInitialized; i++) {
             bool isFree = false; 
             size_t index = currentPage->FH;
@@ -147,7 +154,7 @@ void FSAAllocator::dumpBlocks() const {
                 }
                 index = *static_cast<size_t*>(static_cast<void*>(static_cast<char*>(currentPage->blocks) + index * blockSize));
             }
-            std::cout << "\t\tPage " << pageIndex << " Block " << i;
+            std::cout << "\t\t\tBlock " << i;
             if (!isFree) {
                 std::cout << " Busy";
             }
@@ -163,7 +170,7 @@ void FSAAllocator::dumpBlocks() const {
 }
 #endif // _DEBUG
 
-void FSAAllocator::allocPage(Page*& page) {
+void FSAllocator::allocPage(Page*& page) {
     void* pBuf = VirtualAlloc(NULL, blockSize * numBlocksInPage + sizeof(Page), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
     page = static_cast<Page*>(pBuf);
     page->next = nullptr;
@@ -172,7 +179,7 @@ void FSAAllocator::allocPage(Page*& page) {
     page->numInitialized = 0;
 }
 
-void FSAAllocator::destroyPage(Page*& page) {
+void FSAllocator::destroyPage(Page*& page) {
     if (page == nullptr) {
         return;
     }

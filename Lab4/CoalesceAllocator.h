@@ -24,6 +24,16 @@ public:
 #endif
 
 private:
+	struct Buffer {
+		Buffer* next;
+		size_t FH;
+		void* blocks;
+	};
+	struct Block {
+		size_t size;
+		void* data;
+		bool free;
+	};
 #ifdef _DEBUG
 	bool isInitialized;
 	bool isDestroyed;
@@ -31,5 +41,9 @@ private:
 	size_t numAlloc;
 	size_t numFree;
 #endif  // _DEBUG
-	size_t OSBlockSize;
+	size_t bufferSize;
+	Buffer* buffer;
+
+	void allocBuffer(Buffer*& buffer);
+	void destroyBuffer(Buffer*& buffer);
 };

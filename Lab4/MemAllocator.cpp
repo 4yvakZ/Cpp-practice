@@ -1,5 +1,7 @@
 #include "MemAllocator.h"
 
+//constexpr size_t kSizeToSaveInOSBuffer = 5000;
+constexpr size_t kSizeToSaveInOSBuffer = 10485760; //10 MB
 
 MemoryAllocator::MemoryAllocator() {
 #ifdef _DEBUG
@@ -29,7 +31,8 @@ void MemoryAllocator::init() {
 	fsa128.init(128, 64);
 	fsa256.init(256, 32);
 	fsa512.init(512, 16);
-	coalesceAllocator.init(10485760); // 10MB
+
+	coalesceAllocator.init(kSizeToSaveInOSBuffer * 2);
 }
 void MemoryAllocator::destroy() {
 #ifdef _DEBUG
@@ -76,8 +79,8 @@ void* MemoryAllocator::alloc(size_t size) {
 	if (size < 512) {
 		return fsa512.alloc(size);
 	}
-	if (size < 10485760) { // 10MB
-		//return coalesceAllocator.alloc(size);
+	if (size < kSizeToSaveInOSBuffer) {
+		return coalesceAllocator.alloc(size);
 	}
 	void* p = VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 	Block block;
@@ -143,13 +146,12 @@ void MemoryAllocator::dumpStat() const {
 	fsa256.dumpStat();
 	fsa512.dumpStat();
 
+	coalesceAllocator.dumpStat();
 
-
-	std::cout << "\tPure OS Blocks:" << std::endl;
+	std::cout << "\tOS Blocks:" << std::endl;
 	for (size_t i = 0; i < OSBlocks.size(); i++) {
 		std::cout << "\t\tBlock " << i << " Adress: " << OSBlocks[i].data << " Size: " << OSBlocks[i].size << std::endl;
 	}
-	std::cout << std::endl;
 	std::cout << std::endl;
 	std::cout << std::endl;
 }
@@ -163,11 +165,13 @@ void MemoryAllocator::dumpBlocks() const {
 	fsa128.dumpBlocks();
 	fsa256.dumpBlocks();
 	fsa512.dumpBlocks(); 
-	std::cout << "\tPure OS Blocks:" << std::endl;
+
+	coalesceAllocator.dumpBlocks();
+
+	std::cout << "\tOS Blocks:" << std::endl;
 	for (size_t i = 0; i < OSBlocks.size(); i++) {
 		std::cout << "\t\tBlock " << i << " Adress: " << OSBlocks[i].data << " Size: " << OSBlocks[i].size << std::endl;
 	}
-	std::cout << std::endl;
 	std::cout << std::endl;
 	std::cout << std::endl;
 }

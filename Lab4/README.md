@@ -60,3 +60,7 @@ allocator.dumpStat(); allocator.dumpBlocks();
 allocator.free(pa); allocator.free(pd); allocator.free(pi); allocator.destroy();
 ```
 ## Результаты
+
+Были реализованны как отдельные классы `FSAllocator` и `CoalesceAllocator`.
+На их основе был сделан менеджер памяти `MemoryAllocator`, 
+который выделяет память для малых объёмов через FSA, для больших через VirtualAlloc, а для объёмов больше 512 байт и меньше 10 мегабайт.

@@ -2,7 +2,7 @@
 #include <cassert>
 #include <windows.h>
 
-#include "FSAAllocator.h"
+#include "FSAllocator.h"
 #include "CoalesceAllocator.h"
 
 #ifdef _DEBUG
@@ -41,6 +41,6 @@ private:
 		void* data;
 	};
 	std::vector<Block> OSBlocks;
-	FSAAllocator fsa16, fsa32, fsa64, fsa128, fsa256, fsa512;
+	FSAllocator fsa16, fsa32, fsa64, fsa128, fsa256, fsa512;
 	CoalesceAllocator coalesceAllocator;
 };
