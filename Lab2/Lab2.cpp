@@ -4,6 +4,7 @@
 
 int main()
 {
+    free(nullptr);
     /*Array<std::string> a;
     for (int i = 0; i < 10; i++) {
         std::cout <<  a.insert("kek") << " ";
@@ -15,8 +16,5 @@ int main()
     std::cout << a.size() << std::endl;
     for (auto it = a.iterator(); it.hasNext(); it.next())
         std::cout << it.get() << std::endl;*/
-    
-
-
     
 }

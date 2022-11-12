@@ -66,7 +66,7 @@ namespace UnitTest1
 			for (int i = 0; i < n; i++) {
 				a[i] = n - i;
 			}
-			sort(a, a + n, [](int a, int b) { return a < b; }, 5);
+			sort(a, a + n, [](int a, int b) { return a < b; });
 			for (int i = 0; i < n; i++) {
 				Assert::AreEqual(i + 1, a[i]);
 			}
@@ -79,7 +79,7 @@ namespace UnitTest1
 			for (int i = 0; i < n; i++) {
 				a[i] = n - i;
 			}
-			sort(a, a + n, [](int a, int b) { return a < b; }, 3);
+			sort(a, a + n, [](int a, int b) { return a < b; });
 			for (int i = 0; i < n; i++) {
 				Assert::AreEqual(i + 1, a[i]);
 			}
